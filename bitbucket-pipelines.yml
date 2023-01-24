@@ -1,0 +1,68 @@
+# This is a sample build configuration for Javascript (Node.js).
+# Check our guides at https://confluence.atlassian.com/x/14UWN for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: adnene/node-redis:latest
+
+pipelines:
+  default:
+    - step:
+        script: # Modify the commands below to build your repository.
+          - echo "Default script"
+          - nvm use 8.7.0
+          - npm install -g yarn
+          - yarn global add gulp
+          - yarn
+          - redis-server /opt/redis-stable/redis.conf # Launch Redis Server daemonized on default port 6379
+          - redis-server /opt/redis-stable/redis.conf --port 6380
+          - NODE_ENV="sandbox" CACHE_HOST="127.0.0.1" gulp mocha
+  #          - zip -r /tmp/artifact.zip . -x node_modules/**\* docs/**\* src/**\* emails/**\* .git/**\*
+  #          - NODE_ENV="sandbox" DEPLOYMENT_GROUP_NAME="darwinSandboxStack-CodeDeployGroup-L58PJ3NPHYRE" gulp deploy
+  branches:
+    master:
+      - step:
+          script:
+            - echo "Master branch script"
+            - nvm use 8.7.0
+            - npm install -g yarn
+            - yarn global add gulp
+            - yarn
+            - redis-server /opt/redis-stable/redis.conf # Launch Redis Server daemonized on default port 6379
+            - redis-server /opt/redis-stable/redis.conf --port 6380
+            - NODE_ENV="production" CACHE_HOST="127.0.0.1" gulp server
+            - echo $BITBUCKET_COMMIT > ./build
+            - cat ./build
+            - zip -r /tmp/artifact.zip . -x ./node_modules/\* ./docs/\* ./src/\* ./emails/\* ./.git/\* ./test/\* ./test-dist/\* ./yarn.lock ./package-lock.json
+            - NODE_ENV="production" DEPLOYMENT_GROUP_NAME="darwinProductionStack-CodeDeployGroup-BM33L6HBB5SF" gulp deploy
+    staging:
+      - step:
+          script:
+            - echo "Staging branch script"
+            - nvm use 8.7.0
+            - npm install -g yarn
+            - yarn global add gulp
+            - yarn
+            - redis-server /opt/redis-stable/redis.conf # Launch Redis Server daemonized on default port 6379
+            - redis-server /opt/redis-stable/redis.conf --port 6380
+            - NODE_ENV="staging" CACHE_HOST="127.0.0.1" gulp mocha
+            - echo $BITBUCKET_COMMIT > ./build
+            - cat ./build
+            - zip -r /tmp/artifact.zip . -x ./node_modules/\* ./docs/\* ./src/\* ./emails/\* ./.git/\* ./test/\* ./test-dist/\* ./yarn.lock ./package-lock.json
+            - NODE_ENV="staging" DEPLOYMENT_GROUP_NAME="darwinStagingStack-CodeDeployGroup-12A0EDH7F50FS" gulp deploy
+    sandbox:
+      - step:
+          script:
+            - echo "Sandbox branch script"
+            - nvm use 8.7.0
+            - node -v
+            - npm install -g yarn
+            - yarn global add gulp
+            - yarn
+            - redis-server /opt/redis-stable/redis.conf # Launch Redis Server daemonized on default port 6379
+            - redis-server /opt/redis-stable/redis.conf --port 6380
+            - NODE_ENV="sandbox" CACHE_HOST="127.0.0.1" gulp mocha
+            - echo $BITBUCKET_COMMIT > ./build
+            - cat ./build
+            - zip -r /tmp/artifact.zip . -x ./node_modules/\* ./docs/\* ./src/\* ./emails/\* ./.git/\* ./test/\* ./test-dist/\* ./yarn.lock ./package-lock.json
+            - NODE_ENV="sandbox" DEPLOYMENT_GROUP_NAME="darwinSandboxStack-CodeDeployGroup-L58PJ3NPHYRE" gulp deploy

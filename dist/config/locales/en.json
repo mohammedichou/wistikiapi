@@ -1,0 +1,62 @@
+{
+  "MAIL_CONFIRMATION_SUBJECT":"Activation of your account",
+  "MAIL_CONFIRMATION_GREETINGS": "Hello %s, ",
+  "MAIL_CONFIRMATION_BODY": "Your account is almost ready! Click on the button below to activate it:",
+  "MAIL_CONFIRMATION_BUTTON": "Enter Wistiki’s Universe",
+  "MAIL_CONFIRMATION_LOSE_RELAX": "Lose & Relax,",
+  "MAIL_CONFIRMATION_WISTIKI": "Wistiki Team",
+  "MAIL_CONFIRMATION_SOCIAL": "Follow us on social media for news, deals and to share with our community!",
+
+
+  "MAIL_WISTIKEYS_SUBJECT": "With Wistikeys, slamming your door has never felt so good!",
+  "MAIL_WISTIKEYS_GREETINGS": "Hi %s,",
+  "MAIL_WISTIKEYS_BODY": "Welcome to the Wistiki world! Wistiki's ambition is to create a world where nothing is lost, and where everything is so much easier to find back…! This mission is progressing every day: we are proud to present the new and first Wistiki service: Wistikeys, a safe keeping solution for your spare key, 100% secured and so easy to use in case of emergency! Don’t be afraid anymore to lock your keys in your flat, slam the door without pressure every single day! To celebrate the launch of Wistikeys, you can subscribe and test the service for free for an entire year (= a saving of 25€!) with the code WISTIKEY. To create your account, it’s very easy, follow the link below:",
+  "MAIL_WISTIKEYS_BUTTON": "No more locksmith, I suscribe!",
+  "MAIL_WISTIKEYS_LOSE_RELAX": "Lose & Relax,",
+  "MAIL_WISTIKEYS_WISTIKI": "Wistiki Team",
+  "MAIL_WISTIKEYS_SOCIAL": "Follow us on social media for news, deals and to share with our community!",
+
+
+  "MAIL_RESET_SUBJECT": "Reset Password",
+  "MAIL_RESET_GREETINGS": "Hi %s!",
+  "MAIL_RESET_BODY": "A request has been sent to reset your password. Click on the button below to reset it:",
+  "MAIL_RESET_BUTTON": "Reset my password",
+  "FOLLOW_US":"Follow us on social media for news, deals and to share with our community!",
+  "WISTIKI": "Wistiki Team",
+  "LOSE_AND_RELAX": "Lose & Relax,",
+
+
+  "MAIL_NEWFRIEND_SUBJECT": "%s wants to share his/her Wistiki %s with you",
+  "MAIL_NEWFRIEND_BODY": "You received an invitation to share a Wistiki!",
+  "MAIL_NEWFRIEND_BODY_CONTENT_1": "%s wants to share his/her Wistiki %s with you. You will now be able to help your friend out.",
+  "MAIL_NEWFRIEND_BODY_CONTENT_2": "You just have to download our app « Wistiki by Starck » and register (which takes less than two minutes).",
+  "MAIL_NEWFRIEND_BODY_CONTENT_3": "You will now be able to make it ring and even locate it.",
+  "MAIL_NEWFRIEND_GOOGLE": "https://s3-eu-west-1.amazonaws.com/wistiki.mails/api/google-play-badge+ENG.png",
+  "MAIL_NEWFRIEND_APPLE": "https://s3-eu-west-1.amazonaws.com/wistiki.mails/api/App_Store_Badge_US-UK.png",
+  "URL_APPLE_STORE": "https://itunes.apple.com/en/app/wistiki-by-starck/id1080702639?mt=8",
+  "URL_GOOGLE_PLAY": "https://play.google.com/store/apps/details?id=com.wistiki.android&hl=en",
+
+
+  "MAIL_FOUND_SUBJECT": "Your Wistiki %s has been found",
+  "MAIL_FOUND_BODY": "Congratulations, your Wistiki %s has been found!",
+  "MAIL_FOUND_BODY_CONTENT_1": "Relax, a member of our community found your Wistiki %s.",
+  "MAIL_FOUND_BODY_CONTENT_2": "Go on the « Wistiki by Starck » app to contact the person who found your device through the « Return a Wistiki » function.",
+  "MAIL_FOUND_BODY_CONTENT_3": "Feel free to share your happiness and your story at wistory@wistiki.com or on social media.",
+
+
+  "MAIL_POSITION_UPDATE_SUBJECT": "Your Wistiki %s ‘s location has just been updated",
+  "MAIL_POSITION_UPDATE_BODY": "Congratulations, your Wistiki %s‘s location has been updated!",
+  "MAIL_POSITION_UPDATE_CONTENT_1": "A member of our community just updated the location of your Wistiki %s.",
+  "MAIL_POSITION_UPDATE_CONTENT_2": "You and your friends with whom you shared the Wistiki are the only one knowing this location.",
+  "MAIL_POSITION_UPDATE_CONTENT_3": "Go there, and look for your Wistiki.",
+  "MAIL_POSITION_UPDATE_CONTENT_4": "Feel free to share your happiness and your story at wistory@wistiki.com or on social media.",
+
+  "MAIL_TUTO_SUBJECT": "%s : Find out how to use your Wistiki",
+  "MAIL_TUTO_BODY": "Find out how to use your Wistiki through our tutorials !",
+  "MAIL_TUTO_BODY_CONTENT": "You can watch all our tutorial videos on our YouTube Channel. You can find out how to :",
+  "MAIL_TUTO_ADD": "Pair your Wistiki",
+  "MAIL_TUTO_RING": "Make your Wistiki ring",
+  "MAIL_TUTO_SHARE": "Share your Wistiki",
+  "MAIL_TUTO_BUTTON": "Watch the videos",
+  "MAIL_TUTO_LINK": "https://www.youtube.com/watch?v=z633NXjEkqo&index=1&list=PLyNdFc3YhXzh1issxqbEngQsIWLb7uBTA"
+}

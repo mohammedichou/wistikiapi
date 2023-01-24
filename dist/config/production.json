@@ -1,0 +1,95 @@
+{
+	"port": 3000,
+	"hostname": "darwin.wistiki.com",
+	"database": {
+		"port": 3306,
+		"schema": "schema_v3",
+		"username": "root",
+		"password": "Wistiki2015!",
+		"replication": {
+			"write": {
+				"host": "schema-cluster.cluster-cjblfo4qzqpg.eu-west-1.rds.amazonaws.com"
+			},
+			"read": [
+				{
+					"host": "schema-cluster.cluster-cjblfo4qzqpg.eu-west-1.rds.amazonaws.com"
+				}
+			]
+		}
+	},
+	"socket": {
+		"host": "darwin.beyt8a.0001.euw1.cache.amazonaws.com",
+		"port": 6379
+	},
+	"redis": {
+		"host": "messages.beyt8a.0001.euw1.cache.amazonaws.com",
+		"port": 6379
+	},
+	"password": {
+		"salt": "5fypt5910qo622zoeo86bgyp3",
+		"type": "sha256",
+		"digest": "hex",
+		"resetLinkExpiresIn": 60
+	},
+	"jwt": {
+		"secretOrPrivateKey": "7cYUTW4ZBdmVZ4ILB08hcTdm5ib0E0zcy+I7pHpNQfJHtI7BJ4omys5S19ufJPBJ",
+		"options": {
+			"algorithm": "HS256",
+			"expiresIn": "30d",
+			"audience": "wistiki.com",
+			"issuer": "darwin.wistiki.com"
+		}
+	},
+	"debug": true,
+	"sns": {
+		"arn": {
+			"production": {
+				"android": "arn:aws:sns:eu-central-1:132150634641:app/GCM/darwin.android",
+				"ios": "arn:aws:sns:eu-central-1:132150634641:app/APNS/darwin.ios.production"
+			},
+			"development": {
+				"ios": "arn:aws:sns:eu-central-1:132150634641:app/APNS_SANDBOX/darwin.ios.dev"
+			}
+		},
+		"topic": {
+			"arn": {
+				"wakemeup": "arn:aws:sns:eu-central-1:132150634641:iOS_WakemeUp"
+			}
+		}
+	},
+	"google": {
+		"geocoder": {
+			"apiKey": "AIzaSyB-TPnCMbMMVE5dR-k0fkW2m9lIYA-94L8"
+		}
+	},
+	"swagger": {
+		"firewall": {
+			"allow": [
+				"127.0.0.1",
+				":::ffff:127.0.0.1",
+				"90.63.237.51",
+				"::ffff:90.63.237.51",
+				"77.157.28.233",
+				"::ffff:77.157.28.233",
+				"217.109.174.105",
+				"::ffff:217.109.174.105"
+			]
+		}
+	},
+	"email": {
+		"ignoredConfirmationDomains": [
+			"ezweb.ne.jp",
+			"docomo.ne.jp",
+			"softbank.ne.jp",
+			"icloud.com"
+		]
+	},
+	"twilio": {
+		"accountSid": "AC555de85c31e3381712f5aa803bd5e735",
+		"authToken":"241a64380a160914fd4e89a6f61062ad"
+	},
+  "chipolo": {
+    "endpoint": "https://platform-api.chipolo.net/v1/integrations/wistiki/report",
+    "key": "93f0a6bb2aa06035646d9d9c5528665fe6da9e70"
+  }
+}

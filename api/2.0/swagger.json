@@ -1,0 +1,3709 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"title": "Wistiki API v2",
+		"description": "Wistiki API v2 for Wistiki v2+",
+		"version": "1.0.0",
+		"contact": {
+			"name": "Wistiki Team",
+			"email": "software@wistiki.com"
+		}
+	},
+	"host": "127.0.0.1:3000",
+	"basePath": "/",
+	"schemes": [
+		"http",
+		"https"
+	],
+	"consumes": [
+    "application/json",
+    "application/octet-stream"
+	],
+	"produces": [
+		"application/json"
+	],
+	"paths": {
+		"/version": {
+			"get": {
+				"tags": ["Version"],
+				"summary": "Returns current version, environment and build commit hash",
+				"operationId": "getVersion",
+				"responses": {
+					"200": {
+						"description": "Version infos",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"version": {
+									"description": "SemRev",
+									"type": "string",
+									"example": "x.y.z"
+								},
+								"environment": {
+									"description": "Server Environment",
+									"type": "string",
+									"example": "sandbox|staging|production"
+								},
+								"build": {
+									"description": "Git commit hash",
+									"type": "string",
+									"example": "6f81592807b90d48c19996947f88dce6b93ed22e"
+								}
+							}
+						}
+					}
+				}
+			}
+
+		},
+		"/login": {
+			"post": {
+				"tags": [
+					"Login"
+				],
+				"summary": "Create a new session",
+				"operationId": "login",
+				"parameters": [
+					{
+						"name": "X-Wistiki-Device-Uid",
+						"description": "Device Unique Id",
+						"required": true,
+						"in": "header",
+						"type": "string",
+						"maxLength": 255
+					},
+					{
+						"name": "X-Wistiki-Device-Name",
+						"description": "Device Name",
+						"required": false,
+						"in": "header",
+						"type": "string",
+						"maxLength": 255
+					},
+					{
+						"name": "X-Wistiki-Device-Token",
+						"description": "Push notification token",
+						"required": false,
+						"in": "header",
+						"type": "string",
+						"maxLength": 255
+					},
+					{
+						"$ref": "#/parameters/environment"
+					},
+					{
+						"name": "Credentials",
+						"description": "User credentials",
+						"required": true,
+						"in": "body",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"email": {
+									"description": "User email",
+									"type": "string",
+									"format": "email"
+								},
+								"password": {
+									"description": "User password",
+									"type": "string",
+									"format": "password"
+								}
+							},
+							"required": [
+								"email",
+								"password"
+							],
+							"example": {
+								"email": "adnene.khalfa@wistiki.com",
+								"password": "123456"
+							}
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Successful authentication, returns the user object with an authentication token to be used for later calls",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"user": {
+									"$ref": "#/definitions/ResponseUser"
+								},
+								"auth_token": {
+									"description": "JWT Token",
+									"type": "string",
+									"example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG5lbmUua2hhbGZhQHdpc3Rpa2kuY29tIiwidWlkIjoiMTIzNDUiLCJpYXQiOjE0NTA2MzgwODUsImV4cCI6MTQ1MTI0Mjg4NSwiYXVkIjoid2lzdGlraS5jb20iLCJpc3MiOiJhcGkud2lzdGlraS5jb20ifQ.CkIuNl_DtkwMy93WXGSIUawIIIvqsfips7-XbqIm6Os"
+								},
+								"refresh_token": {
+									"description": "Refresh Token",
+									"type": "string",
+									"example": "7acf981a-d698-4ccb-96b3-c970905803af"
+								}
+							},
+							"required": [
+								"user",
+								"auth_token",
+								"refresh_token"
+							]
+						}
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li><li>ACCOUNT_NOT_CONFIRMED_ERROR: if account was not yet confirmed</li><li>BAD_CREDENTIALS_ERROR: invalid email or password</li><li>DEVICE_UID_REQUIRED: missing x-wistiki-device-uid header</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/login/{email}": {
+			"put": {
+				"tags": [
+					"Login"
+				],
+				"summary": "Update session.",
+				"description": "Update the user session.",
+				"operationId": "updateSession",
+				"parameters": [
+					{
+						"$ref": "#/parameters/email"
+					},
+					{
+						"$ref": "#/parameters/device_uid"
+					},
+					{
+						"$ref": "#/parameters/refresh_token"
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Successful authentication, returns the user object with an authentication token to be used for later calls",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"user": {
+									"$ref": "#/definitions/ResponseUser"
+								},
+								"auth_token": {
+									"description": "JWT Token",
+									"type": "string",
+									"example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG5lbmUua2hhbGZhQHdpc3Rpa2kuY29tIiwidWlkIjoiMTIzNDUiLCJpYXQiOjE0NTA2MzgwODUsImV4cCI6MTQ1MTI0Mjg4NSwiYXVkIjoid2lzdGlraS5jb20iLCJpc3MiOiJhcGkud2lzdGlraS5jb20ifQ.CkIuNl_DtkwMy93WXGSIUawIIIvqsfips7-XbqIm6Os"
+								},
+								"refresh_token": {
+									"description": "Refresh Token",
+									"type": "string",
+									"example": "7acf981a-d698-4ccb-96b3-c970905803af"
+								}
+							},
+							"required": [
+								"user",
+								"auth_token",
+								"refresh_token"
+							]
+						}
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li><li>ACCOUNT_NOT_CONFIRMED_ERROR: if account was not yet confirmed</li><li>BAD_CREDENTIALS_ERROR: invalid email or password</li><li>DEVICE_UID_REQUIRED: missing x-wistiki-device-uid header</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to access the resource model</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Not Found: RESOURCE_NOT_FOUND: <ul><li>no user found for this email</li><li>Device is not associated with user account</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"Login"
+				],
+				"summary": "Delete session.",
+				"description": "Delete user session.",
+				"operationId": "logout",
+				"parameters": [
+					{
+						"$ref": "#/parameters/email"
+					},
+					{
+						"$ref": "#/parameters/jwt"
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "User session removed with success"
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li><li>ACCOUNT_NOT_CONFIRMED_ERROR: if account was not yet confirmed</li><li>BAD_CREDENTIALS_ERROR: invalid email or password</li><li>DEVICE_UID_REQUIRED: missing x-wistiki-device-uid header</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to access the resource model</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Not Found: RESOURCE_NOT_FOUND: <ul><li>no user found for this email</li><li>Device is not associated with user account</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/password": {
+			"post": {
+				"tags": [
+					"Password"
+				],
+				"summary": "Create a forgot password request",
+				"operationId": "forgotPassword",
+				"parameters": [
+					{
+						"name": "email",
+						"description": "User email",
+						"required": true,
+						"in": "body",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"email": {
+									"description": "User email",
+									"type": "string",
+									"format": "email"
+								}
+							},
+							"required": [
+								"email"
+							],
+							"example": {
+								"email": "adnene.khalfa@wistiki.com"
+							}
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Successful request, send email to user with reset password link"
+					},
+					"404": {
+						"description": "User not found"
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/password/{email}": {
+			"put": {
+				"tags": [
+					"Password"
+				],
+				"summary": "Update password.",
+				"description": "Reset old password by forgot email link",
+				"operationId": "updatePassword",
+				"parameters": [
+					{
+						"$ref": "#/parameters/email"
+					},
+					{
+						"name": "password",
+						"description": "Credentials for update",
+						"required": true,
+						"in": "body",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"password_reset_token": {
+									"description": "Reset password token",
+									"type": "string",
+									"format": "string"
+								},
+								"new_password": {
+									"description": "Reset password token",
+									"type": "string",
+									"format": "string"
+								}
+							},
+							"required": [
+								"password_reset_token",
+								"new_password"
+							],
+							"example": {
+								"password_reset_token": "bab18c87-9ea0-45ea-858f-7bba85ee5a3f",
+								"new_password": "yourNewPassword"
+							}
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Successful new password request"
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li><li>ACCOUNT_NOT_CONFIRMED_ERROR: if account was not yet confirmed</li><li>BAD_CREDENTIALS_ERROR: invalid email or password</li><li>DEVICE_UID_REQUIRED: missing x-wistiki-device-uid header</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"404": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to access the resource model</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to access the resource model</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Not Found, no user found for this email",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/users": {
+			"x-swagger-router-controller": "users",
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Create a new user",
+				"description": "Create a new user using at least an email and a password. The email acts as the id. If successful returns the user created.",
+				"operationId": "createAccount",
+				"parameters": [
+					{
+						"name": "user",
+						"in": "body",
+						"description": "The user to create",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/NewUser",
+							"required": [
+								"email",
+								"password"
+							]
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Successful registration, returns the user created",
+						"schema": {
+							"$ref": "#/definitions/ResponseUser"
+						}
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li><li>INVALID_AVATAR_FORMAT: if attribute avatar_base64 is not a valid base64 string</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"409": {
+						"description": "Conflict, this email is already used",
+						"schema": {
+							"$ref": "#/definitions/ConflictError"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/users/{email}": {
+			"x-swagger-router-controller": "users",
+			"get": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Get user information",
+				"description": "Returns the information of the user identified by its email.",
+				"operationId": "getUserInfo",
+				"parameters": [
+					{
+						"$ref": "#/parameters/email"
+					},
+					{
+						"$ref": "#/parameters/jwt"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "User information found, returns the user",
+						"schema": {
+							"$ref": "#/definitions/ResponseUser"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to access the resource model</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Not Found, no user found for this email",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			},
+			"put": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Update user information",
+				"description": "Update the information of the user identified by its email. Only the populated fields are updated.",
+				"operationId": "updateUserInfo",
+				"parameters": [
+					{
+						"$ref": "#/parameters/email"
+					},
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"name": "user",
+						"in": "body",
+						"description": "The new user information",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/UpdateUser"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "User information found, returns the user",
+						"schema": {
+							"$ref": "#/definitions/ResponseUser"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to access the resource model</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Not Found, no user found for this email",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/users/{email}/confirmation/{id}": {
+			"x-swagger-router-controller": "messages",
+			"put": {
+				"summary": "Confirm user account",
+				"description": "Will return 204 (NoContent) if confirmation is success",
+				"operationId": "confirmAccount",
+				"tags": [
+					"Users"
+				],
+				"parameters": [
+					{
+						"name": "email",
+						"in": "path",
+						"description": "user email",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"description": "confirmation token",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Verfication succeeded"
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user not anonymous (already authenticated)</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Not Found, no user found for this email",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>OPERATION_NOT_PERMITTED: if user identified by email has already a confirmed account</li><li>CONFIRMATION_TOKEN_INVALID: if confirmation token mismatch with token stored in DB</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/users/{email}/wistikis": {
+			"x-swagger-router-controller": "users",
+			"get": {
+				"tags": [
+					"Wistikis"
+				],
+				"summary": "Wistiki list",
+				"description": "Returns the user Wistiki list, owned and shared. For shared wistikis, it will only show the owner. The friend list will only contain current user infos",
+				"operationId": "getUserWistikis",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/email"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "User Wistiki list found",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/UserWistiki"
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to access the resource model</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Not Found, no user found for this email",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Wistikis",
+					"Shares"
+				],
+				"summary": "Wistiki ownership",
+				"description": "Take ownership of a wistiki if Wistiki does not have an owner. Throws a Conflict error if Wistiki have an owner",
+				"operationId": "addNewWistiki",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/email"
+					},
+					{
+						"name": "wistiki",
+						"in": "body",
+						"description": "The Wistiki to add to the user",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/OwnershipWistiki",
+							"required": [
+								"serial_number",
+								"msn_cipher",
+								"wistiki_alias",
+								"authentication_key"
+							]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Wistiki full details",
+						"schema": {
+							"$ref": "#/definitions/UserWistiki"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>REQUEST_AUTHENTICATION_FAILED: MSN Cipher incorrect</li><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li><li>INVALID_AVATAR_FORMAT: if attribute avatar_base64 is not a valid base64 string</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>MODEL_ACL_ERROR: if user is not allowed to create an owner for this wistiki</li><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Not Found, Wistiki or User not found",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"409": {
+						"description": "Conflict, this Wistiki has already an owner",
+						"schema": {
+							"$ref": "#/definitions/ConflictError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/users/{email}/wistikis/{serial_number}": {
+			"put": {
+				"tags": [
+					"Wistikis"
+				],
+				"summary": "Update Wistiki details",
+				"description": "If current user is owner, it will update owner's details. Otherwise if current is a friend it will update friends details",
+				"operationId": "updateWistiki",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/email"
+					},
+					{
+						"$ref": "#/parameters/serial_number"
+					},
+					{
+						"name": "details",
+						"in": "body",
+						"description": "Wistiki details",
+						"schema": {
+							"$ref": "#/definitions/WistikiDetails"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Wistiki full details",
+						"schema": {
+							"$ref": "#/definitions/UserWistiki"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>MODEL_ACL_ERROR: if user is not allowed to create an owner for this wistiki</li><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Not Found, Wistiki not found",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/users/{email}/devices": {
+			"x-swagger-router-controller": "devices",
+			"get": {
+				"summary": "Retrieve user's devices",
+				"description": "Will return an array of devices that belong to user identified by its email",
+				"operationId": "getUserDevices",
+				"tags": [
+					"Users",
+					"Devices"
+				],
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"name": "email",
+						"in": "path",
+						"description": "user email",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returns device list",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/ResponseDevice"
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Not Found, no user found for this email",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/users/{email}/devices/{uid}": {
+			"put": {
+				"summary": "Update user's device information",
+				"description": "Will update device information like: name, os, name, push token",
+				"operationId": "updateUserDevice",
+				"tags": [
+					"Users",
+					"Devices"
+				],
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/environment"
+					},
+					{
+						"name": "email",
+						"in": "path",
+						"description": "user email",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "uid",
+						"in": "path",
+						"description": "device unique id",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "deviceDetails",
+						"in": "body",
+						"description": "Device details to update",
+						"schema": {
+							"$ref": "#/definitions/BasicDevice"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returns updated device info",
+						"schema": {
+							"$ref": "#/definitions/ResponseDevice"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "RESOURCE_NOT_FOUND:<ul><li>no user found for this email</li><li>device not associated with user account</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to update this device. This is an odd verification as we check previously if the device is associated with user account otherwise we throw not found error</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					}
+				}
+			}
+		},
+		"/users/{email}/threads": {
+			"x-swagger-router-controller": "threads",
+			"get": {
+				"summary": "Retrieve user's threads",
+				"description": "Will return an array of threads in which user identified by its email is participating",
+				"operationId": "getUserThreads",
+				"tags": [
+					"Users"
+				],
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"name": "email",
+						"in": "path",
+						"description": "user email",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returns thread list",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/MessageThread"
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Not Found, no user found for this email",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/users/{email}/threads/{id}/messages": {
+			"x-swagger-router-controller": "threads",
+			"post": {
+				"summary": "Post a new message to a thread",
+				"description": "Post a new message to thread",
+				"operationId": "postThreadMessage",
+				"tags": [
+					"Users"
+				],
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"name": "email",
+						"in": "path",
+						"description": "user email",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Thread id",
+						"required": true,
+						"type": "number"
+					},
+					{
+						"name": "message",
+						"in": "body",
+						"description": "Message object",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/NewMessage"
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Message object",
+						"schema": {
+							"type": "object",
+							"$ref": "#/definitions/Message",
+							"description": "Message that was post to the thread"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Not Found, no user found for this email or thread not found",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/users/{email}/messages": {
+			"x-swagger-router-controller": "messages",
+			"get": {
+				"summary": "Retrieve user's messages",
+				"description": "Will return an array of messages of user identified by its email",
+				"operationId": "getUserMessages",
+				"tags": [
+					"Users"
+				],
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"name": "email",
+						"in": "path",
+						"description": "user email",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returns message list",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/Message"
+							}
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Not Found, no user found for this email",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/wistikis": {
+			"post": {
+				"tags": [
+					"Provisioning"
+				],
+				"summary": "Create a new Wistiki in database (BMS)",
+				"description": "Use this to create a new Wistiki in database",
+				"operationId": "createWistiki",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"name": "wistikis",
+						"in": "body",
+						"required": true,
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/NewWistiki"
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "List of Wistiki that were created with success",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/NewWistiki"
+							}
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/wistikis/{serial_number}": {
+			"x-swagger-router-controller": "wistikis",
+			"get": {
+				"tags": [
+					"Wistikis"
+				],
+				"summary": "Wistiki information",
+				"description": "Returns the Wistiki information with the users associated (owner and shares) based on its serial number.",
+				"operationId": "getWistikiInfo",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/serial_number"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Wistiki full details",
+						"schema": {
+							"$ref": "#/definitions/UserWistiki"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>MODEL_ACL_ERROR: if user is not allowed to create an owner for this wistiki</li><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Not Found, Wistiki not found",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			},
+			"put": {
+				"tags": [
+					"Provisioning", "Wistikis"
+				],
+				"summary": "Update a Wistiki (TEP)",
+				"operationId": "updateWistikiInfo",
+				"description": "Update a Wistiki data based on its serial number. Data that can be updated: <ul><li>manufacturing_date</li><li>last_software_version</li><li>last_software_update</li></ul> At least one of these data must be provided. Only application and user profiles are allowed to access this endpoint. If profile is user, than check if it has rights to update the Wistiki table",
+				"parameters": [
+					{
+						"name": "Authorization",
+						"in": "header",
+						"description": "JWT Authentication Token",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"$ref": "#/parameters/serial_number"
+					},
+					{
+						"name": "info",
+						"in": "body",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"manufacturing_date": {
+									"type": "string",
+									"format": "date-time",
+									"description": "Date of manufacturing of the Wistiki"
+								},
+								"last_software_version": {
+									"type": "string",
+									"description": "Last firmware version"
+								},
+								"last_software_update": {
+									"type": "string",
+									"format": "date-time",
+									"description": "Date of last firmware update"
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Wistiki updated with success",
+						"schema": {
+							"type": "object",
+							"$ref": "#/definitions/Wistiki"
+						}
+					},
+					"400": {
+						"description": "Bad Request. Possible messages: <ul><li>REQUIRED_DATA_MISSING: When request does not contain an update of at least one of the possible data update attributes</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>MODEL_ACL_ERROR: if user is not allowed to update this wistiki</li><li>SERVICE_ACL_ERROR: if user/application is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Wistiki not found. Possible messages: <ul><li>NOT_PROVISIONED: When wistiki is not found</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/wistikis/{serial_number}/owner": {
+			"x-swagger-router-controller": "wistikis",
+			"post": {
+				"tags": [
+					"Shares",
+					"Wistikis"
+				],
+				"summary": "Update ownership of the Wistiki",
+				"description": "Change the owner of the Wistiki, the previous owner becomes a share of the Wistiki",
+				"operationId": "transferOwner",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/serial_number"
+					},
+					{
+						"name": "owner",
+						"in": "body",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"email": {
+									"type": "string",
+									"format": "email",
+									"description": "The user email used as the id"
+								},
+								"reset_friends": {
+									"type": "boolean",
+									"description": "If friends list should be reset default is false"
+								}
+							},
+							"required": [
+								"email"
+							]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Wistiki full details",
+						"schema": {
+							"$ref": "#/definitions/UserWistiki"
+						}
+					},
+					"400": {
+						"description": "OPERATION_NOT_PERMITTED: <ul><li>When user try to transfer a Wistiki to himself</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>MODEL_ACL_ERROR: if user is not allowed to transfer this wistiki</li><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "RESOURCE_NOT_FOUND: <ul><li>User not found</li><li>Wistiki not found</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/wistikis/{serial_number}/friends": {
+			"x-swagger-router-controller": "wistikis",
+			"post": {
+				"tags": [
+					"Shares"
+				],
+				"summary": "Share the Wistiki with another user",
+				"description": "Share the Wistiki with another user, only the owner can do this",
+				"operationId": "shareWistiki",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/serial_number"
+					},
+					{
+						"name": "friend",
+						"in": "body",
+						"description": "Email of the user to share the Wistikwi with",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"email": {
+									"description": "Friend email address",
+									"type": "string",
+									"format": "email"
+								}
+							},
+							"required": [
+								"email"
+							],
+							"example": {
+								"email": "adnene.khalfa@wistiki.com"
+							}
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Wistiki share success with full details",
+						"schema": {
+							"$ref": "#/definitions/ResponseUser"
+						}
+					},
+					"400": {
+						"description": "OPERATION_NOT_PERMITTED: <ul><li>When user try to share a Wistiki to himself</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>MODEL_ACL_ERROR: if user is not allowed to share this wistiki</li><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "RESOURCE_NOT_FOUND: <ul><li>User not found</li><li>Wistiki not found</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/wistikis/{serial_number}/friends/{email}": {
+			"x-swagger-router-controller": "wistikis",
+			"delete": {
+				"tags": [
+					"Shares",
+					"Wistikis"
+				],
+				"summary": "Unshare Wistiki",
+				"description": "Remove the Wistiki sharing with a user identified by its email. Return result depending on if the request client is the owner or a friend",
+				"operationId": "unshareWistiki",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/serial_number"
+					},
+					{
+						"$ref": "#/parameters/email"
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Wistiki sharing removed with success. This is returned if the request client is a friend and not the owner"
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>MODEL_ACL_ERROR: if user is not allowed to remove a share for this wistiki</li><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "RESOURCE_NOT_FOUND: <ul><li>Sharing between user and wistiki is not found</li><li>Wistiki not found</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/wistikis/{serial_number}/positions": {
+			"x-swagger-router-controller": "wistikis",
+			"get": {
+				"tags": [
+					"Positions",
+					"Wistikis"
+				],
+				"summary": "Last Wistiki position",
+				"description": "Returns the last Wistiki position based on its serial number",
+				"operationId": "getWistikiPositions",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/serial_number"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Last Wistiki position found",
+						"schema": {
+							"type": "object",
+							"$ref": "#/definitions/Position"
+						}
+					},
+					"204": {
+						"description": "No Wistiki position"
+					},
+					"400": {
+						"description": "Bad Request",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Wistiki not found",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Positions"
+				],
+				"summary": "Save Wistiki positions",
+				"description": "Save Wistiki positions based on its serial number",
+				"operationId": "addWistikiPositions",
+				"parameters": [
+					{
+						"$ref": "#/parameters/serial_number"
+					},
+					{
+						"name": "geolocations",
+						"in": "body",
+						"required": true,
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/Position"
+							}
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Wistiki positions created"
+					},
+					"400": {
+						"description": "Bad Request",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"404": {
+						"description": "Wistiki not found",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/wistikettes/{serial_number}/calls": {
+			"x-swagger-router-controller": "wistikis",
+			"post": {
+				"tags": [
+					"Wistikettes",
+					"Wistikis"
+				],
+				"summary": "Send found request for Wistikette",
+				"description": "Retrieve owner info for Wistikette",
+				"operationId": "callWistiketteFound",
+				"parameters": [
+					{
+						"$ref": "#/parameters/serial_number"
+					},
+					{
+						"name": "WistiketteCall",
+						"description": "Call information",
+						"required": true,
+						"in": "body",
+						"schema": {
+							"$ref": "#/definitions/WistiketteCall"
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Wistikette information",
+						"schema": {
+							"type": "object",
+							"description": "Wistikette relative information"
+						}
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>REQUEST_AUTHENTICATION_FAILED: MSN Cipher incorrect</li><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Wistikette not found, or Owner not found: <ul><li>OWNER_NOT_FOUND: Owner was not found</li><li>RESOURCE_NOT_FOUND: Wistikette not found</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/wistikettes/{serial_number}/founds": {
+			"x-swagger-router-controller": "wistikis",
+			"post": {
+				"tags": [
+					"Wistikettes",
+					"Wistikis"
+				],
+				"summary": "Send found request for Wistikette",
+				"description": "Retrieve owner info for Wistikette",
+				"operationId": "postWistiketteFound",
+				"parameters": [
+					{
+						"$ref": "#/parameters/serial_number"
+					},
+					{
+						"name": "WistiketteFound",
+						"description": "Wistiki found informations",
+						"required": true,
+						"in": "body",
+						"schema": {
+							"$ref": "#/definitions/WistiketteFound"
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Wistikette information",
+						"schema": {
+							"type": "object",
+							"$ref": "#/definitions/ResponseWistiketteFound",
+							"description": "Wistikette relative information"
+						}
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>REQUEST_AUTHENTICATION_FAILED: MSN Cipher incorrect</li><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Wistikette not found, or Owner not found: <ul><li>OWNER_NOT_FOUND: Owner was not found</li><li>RESOURCE_NOT_FOUND: Wistikette not found</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/wistikis/{serial_number}/founds": {
+			"x-swagger-router-controller": "wistikis",
+			"post": {
+				"tags": [
+					"Positions",
+					"Wistikis"
+				],
+				"summary": "Send found request",
+				"description": "Create a thread and a message between the stranger and the wistiki's owner and send a push notification to the owner. Save last Wistiki position and send it to all devices by push notification",
+				"operationId": "postWistikiFound",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/serial_number"
+					},
+					{
+						"name": "WistikiFound",
+						"description": "Wistiki found informations",
+						"required": true,
+						"in": "body",
+						"schema": {
+							"$ref": "#/definitions/WistikiFound"
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Wistiki Founds",
+						"schema": {
+							"type": "object",
+							"$ref": "#/definitions/Message",
+							"description": "Message that was sent to the owner"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>REQUEST_AUTHENTICATION_FAILED: MSN Cipher incorrect</li><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li><li>OPERATION_NOT_PERMITTED: Owner cannot find his own Wistiki</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Wistiki not found, or Owner not found: <ul><li>OWNER_NOT_FOUND: Owner was not found</li><li>RESOURCE_NOT_FOUND: Wistiki not found</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/wistikis/{serial_number}/recovery": {
+			"x-swagger-router-controller": "wistikis",
+			"post": {
+				"tags": [
+					"Wistikis"
+				],
+				"summary": "Request Wistiki Recovery Cipher",
+				"description": "Generate a recovery cipher used to reset Wistiki. It reset also friends list and owner",
+				"operationId": "postWistikiRecovery",
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"$ref": "#/parameters/serial_number"
+					},
+					{
+						"name": "WistikiRecovery",
+						"description": "Wistiki information",
+						"required": true,
+						"in": "body",
+						"schema": {
+							"$ref": "#/definitions/WistikiRecovery"
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Wistiki Recovery Cipher",
+						"schema": {
+							"type": "object",
+							"$ref": "#/definitions/RecoveryCipher",
+							"description": "Recovery cipher to write to wistiki to reset it"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>REQUEST_AUTHENTICATION_FAILED: MSN Cipher incorrect</li><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li><li>OPERATION_NOT_PERMITTED: Owner cannot find his own Wistiki</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"404": {
+						"description": "Wistiki not found: <ul><li>RESOURCE_NOT_FOUND: Wistiki not found</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/positions": {
+			"post": {
+				"tags": [
+					"Devices",
+					"Positions",
+					"Wistiki"
+				],
+				"summary": "Set Wistiki/Device position",
+				"description": "Set Position of list of Wistikis. When user is logged in, the position of its device is also set",
+				"operationId": "addPosition",
+				"parameters": [
+					{
+						"name": "Authorization",
+						"in": "header",
+						"description": "JWT Authentication Token",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "geolocation",
+						"in": "body",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"geolocation": {
+									"$ref": "#/definitions/Position"
+								},
+								"wistikis": {
+									"type": "array",
+									"items": {
+										"$ref": "#/definitions/WistikiPosition"
+									}
+                },
+                "chipolo": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Adresse de la position envoyée",
+						"schema": {
+							"$ref": "#/definitions/ResponsePosition"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error if JWT provided. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"400": {
+						"description": "Bad Request possible messages: <ul><li>REQUEST_AUTHENTICATION_FAILED: MSN Cipher incorrect</li><li>SCHEMA_VALIDATION_FAILED: if request body does not respect the required schema</li><li>INVALID_AVATAR_FORMAT: if attribute avatar_base64 is not a valid base64 string</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/BadRequestError"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>MODEL_ACL_ERROR: if user is not allowed to create an owner for this wistiki</li><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Not Found, Wistiki or User not found",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"409": {
+						"description": "Conflict, this Wistiki has already an owner",
+						"schema": {
+							"$ref": "#/definitions/ConflictError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/applications/{app_id}/keys": {
+			"post": {
+				"tags": [
+					"Applications"
+				],
+				"summary": "Create a new key for a third party app",
+				"description": "Let Application owner to generate a key for his application",
+				"operationId": "addAppKey",
+				"parameters": [
+					{
+						"name": "Authorization",
+						"in": "header",
+						"description": "JWT Authentication Token",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"$ref": "#/parameters/app_id"
+					},
+					{
+						"name": "AppKeyRequest",
+						"in": "body",
+						"description": "AppKey Request object",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"masterKey": {
+									"type": "string",
+									"description": "Application Master Key"
+								},
+								"description": {
+									"type": "string",
+									"description": "Key description"
+								},
+								"lifetime": {
+									"type": "number",
+									"description": "Key lifetime in seconds"
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Application Key object. Token can be found in id attribute",
+						"schema": {
+							"$ref": "#/definitions/AppKey"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: User is not authorized to create a new key for this application</li><li>MASTER_KEY_MISMATCH: Provided application master key does not match application master key</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Application not found: <ul><li>RESOURCE_NOT_FOUND: Application not found</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			},
+			"get": {
+				"tags": [
+					"Applications"
+				],
+				"summary": "Get the list of all generated keys for third party app",
+				"description": "Let Application owner to retrieve the list of all generated keys",
+				"operationId": "getAppKeys",
+				"parameters": [
+					{
+						"name": "Authorization",
+						"in": "header",
+						"description": "JWT Authentication Token",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"$ref": "#/parameters/app_id"
+					},
+					{
+						"name": "X-Wistiki-MasterKey",
+						"in": "header",
+						"description": "Application Master Key",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Application Key object. Token can be found in id attribute",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/AppKey"
+							}
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: User is not authorized to list keys for this application</li><li>MASTER_KEY_MISMATCH: Provided application master key does not match application master key</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Application not found: <ul><li>RESOURCE_NOT_FOUND: Application not found</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+
+		"/messages/{id}": {
+			"get": {
+				"summary": "retrieve message identified by its id",
+				"description": "Returns the Message information",
+				"operationId": "getMessage",
+				"tags": [
+					"Chat"
+				],
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Message id",
+						"required": true,
+						"type": "number"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Message details",
+						"schema": {
+							"$ref": "#/definitions/Message"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to access this resource</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Not Found, message identified by given id was not found",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/models":{
+			"get": {
+				"summary": "list all available models",
+				"description": "lists all available models including last software version for each one",
+				"operationId": "getAllModels",
+				"tags": ["Wistikis"],
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "List of available Models",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/Model"
+							}
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to access this resource</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		},
+		"/models/{id}": {
+			"get": {
+				"summary": "retrieve all information about a specific model",
+				"description": "",
+				"operationId": "getModel",
+				"tags": ["Wistikis"],
+				"parameters": [
+					{
+						"$ref": "#/parameters/jwt"
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Model id",
+						"required": true,
+						"type": "number"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Model details",
+						"schema": {
+							"$ref": "#/definitions/Model"
+						}
+					},
+					"401": {
+						"description": "Not Authenticated error. Possible messages: <ul><li>TOKEN_EXPIRED: Provided token has expired</li><li>USER_NOT_FOUND: user email stored in JWT was not found in DB</li><li>DEVICE_NOT_ASSOCIATED: Device with uid stored in JWT was not found or is not associated with user</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/NotAuthenticated"
+						}
+					},
+					"403": {
+						"description": "Forbidden Request possible messages: <ul><li>SERVICE_ACL_ERROR: if user is not allowed to access this endpoint</li><li>MODEL_ACL_ERROR: if user is not allowed to access this resource</li></ul>",
+						"schema": {
+							"$ref": "#/definitions/ForbiddenError"
+						}
+					},
+					"404": {
+						"description": "Not Found, model identified by given id was not found",
+						"schema": {
+							"$ref": "#/definitions/NotFoundError"
+						}
+					},
+					"default": {
+						"description": "Unexpected Error",
+						"schema": {
+							"$ref": "#/definitions/Error"
+						}
+					}
+				}
+			}
+		}
+	},
+	"definitions": {
+		"AppKey": {
+			"type": "object",
+			"description": "Application Key object",
+			"properties": {
+				"id": {
+					"type": "string",
+					"description": "Application generated token"
+				},
+				"createdAt": {
+					"type": "string",
+					"format": "date-time",
+					"description": "creation date"
+				}
+			}
+		},
+		"LastSoftware": {
+			"type": "object",
+			"description": "Last Software version",
+			"properties": {
+				"version": {
+					"type": "string",
+					"description": "version code name"
+				},
+				"release_date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "version release date"
+				},
+				"url": {
+					"type": "string",
+					"description": "binary file url"
+				},
+				"status": {
+					"type": "boolean",
+					"description": "true if version is active, false if inactive"
+				}
+			}
+		},
+		"MessageState": {
+			"type": "object",
+			"description": "Message status that indicates if a message was seen by user",
+			"properties": {
+				"read": {
+					"type": "boolean",
+					"description": "true if message was seen by user"
+				},
+				"status_date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "if message has been read by user, this indicates when he read the message"
+				},
+				"user": {
+					"$ref": "#/definitions/ResponseUser",
+					"description": "user that read the message"
+				}
+			}
+		},
+		"MessageThread": {
+			"type": "object",
+			"description": "Thread to which belongs this message",
+			"properties": {
+				"id": {
+					"type": "number",
+					"description": "thread id"
+				},
+				"title": {
+					"type": "string",
+					"description": "thread title"
+				},
+				"creator": {
+					"$ref": "#/definitions/ResponseUser",
+					"description": "user that creates this thread"
+				},
+				"participants": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/ResponseUser"
+					},
+					"description": "list of user participating in this thread"
+				},
+				"last_message": {
+					"$ref": "#/definitions/MessageBasic",
+					"description": "last message posted to this thread"
+				}
+			}
+		},
+		"MessageBasic": {
+			"type": "object",
+			"description": "Message posted",
+			"properties": {
+				"id": {
+					"type": "number",
+					"description": "Message id"
+				},
+				"body": {
+					"type": "string",
+					"description": "Message body, it may be a json stringified when type is Notification"
+				},
+				"date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "When this message was created"
+				},
+				"type": {
+					"type": "string",
+					"enum": [
+						"NOTIFICATION",
+						"MESSAGE"
+					],
+					"default": "MESSAGE",
+					"description": "Message type: Notification if this message is a system notification in which case, body will be a json text"
+				},
+				"author": {
+					"$ref": "#/definitions/ResponseUser",
+					"description": "user that creates this message"
+				},
+				"states": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/MessageState"
+					},
+					"description": "a list of message state by user that received this message"
+				}
+			}
+		},
+		"Message": {
+			"allOf": [
+				{
+					"$ref": "#/definitions/MessageBasic"
+				},
+				{
+					"type": "object",
+					"properties": {
+						"thread": {
+							"$ref": "#/definitions/MessageThread",
+							"description": "Thread to which this message belong"
+						}
+					}
+				}
+			],
+			"description": "Message posted"
+		},
+		"NewMessage": {
+			"type": "object",
+			"description": "Message posted",
+			"properties": {
+				"body": {
+					"type": "string",
+					"description": "Message body"
+				}
+			},
+			"required": [
+				"body"
+			]
+		},
+		"User": {
+			"type": "object",
+			"description": "Object representing a user",
+			"properties": {
+				"email": {
+					"type": "string",
+					"format": "email",
+					"description": "The user email used as the id"
+				},
+				"first_name": {
+					"type": "string",
+					"maxLength": 255,
+					"description": "The user name"
+				},
+				"last_name": {
+					"type": "string",
+					"maxLength": 255,
+					"description": "The user first name"
+				},
+				"gender": {
+					"type": "string",
+					"description": "The user gender",
+					"enum": [
+						"M",
+						"F"
+					],
+					"default": "M"
+				},
+				"phone_number": {
+					"type": "string",
+					"maxLength": 45,
+					"description": "The user phone number"
+				}
+			}
+		},
+		"ResponseUser": {
+			"allOf": [
+				{
+					"$ref": "#/definitions/User",
+					"required": [
+						"email",
+						"status",
+						"gender"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"status": {
+							"type": "string",
+							"description": "The status of the user",
+							"enum": [
+								"NOT CONFIRMED",
+								"CONFIRMED"
+							]
+						},
+						"avatar_url": {
+							"type": "string",
+							"maxLength": 255,
+							"description": "Url of the user avatar"
+						},
+						"creation_date": {
+							"type": "string",
+							"format": "date-time",
+							"description": "Account creation date in GMT"
+						},
+						"update_date": {
+							"type": "string",
+							"format": "date-time",
+							"description": "Account confirmation date in GMT"
+						}
+					},
+					"required": [
+						"creation_date",
+						"update_date"
+					],
+					"example": {
+						"status": "NOT CONFIRMED",
+						"email": "adnene.khalfa@wistiki.com",
+						"first_name": "Adnene",
+						"last_name": "KHALFA",
+						"gender": "M",
+						"phone_number": "0658182526",
+						"avatar_url": "https://s3.eu-central-1.amazonaws.com/avatars.wistiki.2/adnene.khalfa%40wistiki.com",
+						"creation_date": "2015-12-20T17:45:22.000Z",
+						"update_date": "2015-12-20T17:45:22.000Z"
+					}
+				}
+			],
+			"required": [
+				"email",
+				"creation_date",
+				"update_date",
+				"status",
+				"gender"
+			]
+		},
+		"NewUser": {
+			"required": [
+				"email"
+			],
+			"allOf": [
+				{
+					"$ref": "#/definitions/User",
+					"required": [
+						"email"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"password": {
+							"type": "string",
+							"format": "password",
+							"description": "The user password",
+							"minLength": 6
+						},
+						"avatar_base64": {
+							"type": "string",
+							"description": "Avatar image in base64 encoding"
+						}
+					},
+					"required": [
+						"password"
+					],
+					"example": {
+						"email": "adnene.khalfa@wistiki.com",
+						"first_name": "Adnene",
+						"last_name": "KHALFA",
+						"gender": "M",
+						"phone_number": "0658182526",
+						"password": "123456",
+						"avatar_base64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA...."
+					}
+				}
+			]
+		},
+		"NewWistiki": {
+			"type": "object",
+			"description": "new wistiki instance",
+			"properties": {
+				"serial_number": {
+					"type": "integer",
+					"format": "int64",
+					"minLength": 12,
+					"maxLength": 12,
+					"description": "Serial number (12 digits) of the Wistiki"
+				},
+				"mac_address": {
+					"type": "string",
+					"minLength": 17,
+					"maxLength": 17,
+					"pattern": "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$",
+					"description": "Mac address (17 digits) of the Wistiki"
+				},
+				"msn": {
+					"type": "string",
+					"description": "Manufacturer Serial Number in hex format"
+				},
+				"recovery_key": {
+					"type": "string",
+					"minLength": 32,
+					"maxLength": 47,
+					"description": "Private recovery key"
+				},
+				"manufacturing_date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "Date of manufacturing of the Wistiki"
+				},
+				"model_id": {
+					"type": "integer"
+				},
+				"last_software_update": {
+					"type": "string",
+					"format": "date-time",
+					"description": "Date of the last software update of the Wistiki"
+				},
+				"last_software_version": {
+					"type": "string",
+					"description": "Current software version of the Wistiki"
+				},
+				"flan": {
+					"type": "integer",
+					"description": "Flan number"
+				}
+			},
+			"required": [
+				"msn",
+				"recovery_key",
+				"last_software_version"
+			]
+		},
+		"UpdateUser": {
+			"allOf": [
+				{
+					"$ref": "#/definitions/User"
+				},
+				{
+					"type": "object",
+					"properties": {
+						"avatar_base64": {
+							"type": "string",
+							"description": "Avatar image in base64 encoding"
+						}
+					},
+					"example": {
+						"first_name": "Adnene",
+						"last_name": "KHALFA",
+						"gender": "M",
+						"phone_number": "0658182526",
+						"avatar_base64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA...."
+					}
+				}
+			]
+		},
+		"Wistiki": {
+			"type": "object",
+			"description": "Object representing a Wistiki",
+			"properties": {
+				"serial_number": {
+					"type": "integer",
+					"format": "int64",
+					"minLength": 12,
+					"maxLength": 12,
+					"description": "Serial number (12 digits) of the Wistiki"
+				},
+				"authentication_key": {
+					"type": "string",
+					"minLength": 47,
+					"maxLength": 47,
+					"description": "Private authentication key needed to connect to the Wistiki"
+				},
+				"activation_date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "Activation date of the Wistiki"
+				},
+				"last_software_update": {
+					"type": "string",
+					"format": "date-time",
+					"description": "Date of the last software update of the Wistiki"
+				},
+				"last_software_version": {
+					"type": "string",
+					"description": "Current software version of the Wistiki"
+				}
+			},
+			"required": [
+				"serial_number",
+				"last_software_version"
+			]
+		},
+		"Model": {
+			"type": "object",
+			"description": "Wistiki Model",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"description": "Model id For example Wistiki Voilà is Wistiki 2"
+				},
+				"commercial_name": {
+					"type": "string",
+					"description": "Commercial name of the product for example Voilà!"
+				},
+				"icon_url": {
+					"type": "string",
+					"description": "Default icon url for this product"
+				},
+				"last_software": {
+					"$ref": "#/definitions/LastSoftware",
+					"description": "Last Software version"
+				}
+			},
+			"required": [
+				"id"
+			]
+		},
+		"WistikiDetails": {
+			"type": "object",
+			"description": "Wistiki details",
+			"properties": {
+				"wistiki_alias": {
+					"type": "string",
+					"description": "Alias name given to the wistiki by the owner"
+				},
+				"wistiki_picture_base64": {
+					"type": "string"
+				},
+				"is_lost": {
+					"type": "boolean",
+					"description": "True if wistiki is declared as lost"
+				},
+				"link_loss": {
+					"type": "boolean",
+					"description": "True if electronic leash option is activated"
+				},
+				"inverted_link_loss": {
+					"type": "boolean",
+					"description": "True if inverted electronic leash is activated"
+				},
+				"color": {
+					"type": "string",
+					"description": "Wistiki color",
+					"enum": [
+						"YELLOW",
+						"PURPLE",
+						"PINK",
+						"ORANGE",
+						"LACOSTE"
+					]
+				},
+				"icon": {
+					"type": "string",
+					"description": "Wistiki icon id"
+				}
+			}
+		},
+		"WistikiOwnerDetails": {
+			"type": "object",
+			"description": "Wistiki settings set by the owner",
+			"properties": {
+				"wistiki_alias": {
+					"type": "string",
+					"description": "Alias name given to the wistiki by the owner"
+				},
+				"wistiki_picture": {
+					"type": "string",
+					"description": "Picture URL of the Wistiki taken by the owner"
+				},
+				"is_lost": {
+					"type": "boolean",
+					"description": "True if wistiki is declared as lost"
+				},
+				"link_loss": {
+					"type": "boolean",
+					"description": "True if electronic leash option is activated"
+				},
+				"inverted_link_loss": {
+					"type": "boolean",
+					"description": "True if inverted electronic leash is activated"
+				},
+				"ownership_start_date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "DateTime of ownership in GMT"
+				},
+				"ownership_end_date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "DateTime of ownership transfert. Null if still owner"
+				},
+				"color": {
+					"type": "string",
+					"description": "Wistiki color",
+					"enum": [
+						"YELLOW",
+						"PURPLE",
+						"PINK",
+						"ORANGE",
+						"LACOSTE"
+					]
+				},
+				"icon": {
+					"type": "string",
+					"description": "Wistiki icon id"
+				}
+			},
+			"required": [
+				"wistiki_alias"
+			],
+			"example": {
+				"wistiki_alias": "Mes clés",
+				"wistiki_picture": "http://s3.amazon.com/...",
+				"is_lost": false,
+				"link_loss": false,
+				"inverted_link_loss": false,
+				"ownership_start_date": "2015-12-12T00:00:00.000Z",
+				"ownership_end_date": "2015-12-12T00:00:00.000Z"
+			}
+		},
+		"WistikiFriendDetails": {
+			"type": "object",
+			"description": "Wistiki settings set by the friend",
+			"properties": {
+				"wistiki_alias": {
+					"type": "string",
+					"description": "Alias name given to the wistiki by the owner"
+				},
+				"wistiki_picture": {
+					"type": "string",
+					"description": "Picture URL of the Wistiki taken by the owner"
+				},
+				"is_lost": {
+					"type": "boolean",
+					"description": "True if wistiki is declared as lost"
+				},
+				"link_loss": {
+					"type": "boolean",
+					"description": "True if electronic leash option is activated"
+				},
+				"inverted_link_loss": {
+					"type": "boolean",
+					"description": "True if inverted electronic leash is activated"
+				},
+				"share_start_date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "DateTime of ownership in GMT"
+				},
+				"share_end_date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "DateTime of unshare. Null if share is still active"
+				},
+				"color": {
+					"type": "string",
+					"description": "Wistiki color",
+					"enum": [
+						"YELLOW",
+						"PURPLE",
+						"PINK",
+						"ORANGE",
+						"LACOSTE"
+					]
+				},
+				"icon": {
+					"type": "string",
+					"description": "Wistiki icon id"
+				}
+			}
+		},
+		"WistikiOwner": {
+			"type": "object",
+			"description": "Object representing all information about Wistiki owner",
+			"allOf": [
+				{
+					"$ref": "#/definitions/ResponseUser"
+				},
+				{
+					"type": "object",
+					"properties": {
+						"wistiki_has_owner": {
+							"$ref": "#/definitions/WistikiOwnerDetails"
+						}
+					}
+				}
+			],
+			"example": {
+				"email": "adnene.khalfa@wistiki.com",
+				"first_name": "Adnene",
+				"last_name": "KHALFA",
+				"gender": "M",
+				"avatar_url": "http://s3.amazon.com...",
+				"phone_number": "0658182526",
+				"creation_date": "2015-12-21T20:14:28.000Z",
+				"confirmation_date": "2015-12-21T20:15:00.000Z",
+				"update_date": "2015-12-21T20:15:00.000Z",
+				"status": "CONFIRMED",
+				"wistiki_has_owner": {
+					"wistiki_alias": "Mes clés",
+					"wistiki_picture": "https://s3.amazon.com....",
+					"link_loss": false,
+					"inverted_link_loss": false,
+					"ownership_start_date": "2015-12-12T00:00:00.000Z"
+				}
+			}
+		},
+		"WistikiFriend": {
+			"type": "object",
+			"description": "Object representing all information about Wistiki friend",
+			"allOf": [
+				{
+					"$ref": "#/definitions/ResponseUser"
+				},
+				{
+					"type": "object",
+					"properties": {
+						"wistiki_has_friend": {
+							"$ref": "#/definitions/WistikiFriendDetails"
+						}
+					}
+				}
+			],
+			"example": {
+				"email": "adnene@wistiki.com",
+				"first_name": "Toto",
+				"last_name": "Titi",
+				"gender": "M",
+				"avatar_url": "http://s3.amazon.com/...",
+				"phone_number": "060606060",
+				"creation_date": "2015-12-12T00:00:00.000Z",
+				"confirmation_date": "2015-12-21T00:00:00.000Z",
+				"update_date": "2015-12-12T00:00:00.000Z",
+				"status": "CONFIRMED",
+				"wistiki_has_friend": {
+					"wistiki_alias": "Huh",
+					"wistiki_picture": "http://s3.amazon.com/...",
+					"link_loss": false,
+					"inverted_link_loss": false,
+					"share_start_date": "2015-12-12T00:00:00.000Z"
+				}
+			}
+		},
+		"UserWistiki": {
+			"type": "object",
+			"description": "Object representing a Wistiki with all related information including owner and friends",
+			"allOf": [
+				{
+					"$ref": "#/definitions/Wistiki"
+				},
+				{
+					"type": "object",
+					"required": [
+						"model",
+						"owner"
+					],
+					"properties": {
+						"model": {
+							"$ref": "#/definitions/Model"
+						},
+						"owner": {
+							"$ref": "#/definitions/WistikiOwner"
+						},
+						"friends": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/WistikiFriend"
+							}
+						},
+						"last_position": {
+							"$ref": "#/definitions/ResponsePosition"
+						}
+					}
+				}
+			],
+			"required": [
+				"model",
+				"owner"
+			]
+		},
+		"OwnershipWistiki": {
+			"type": "object",
+			"properties": {
+				"serial_number": {
+					"type": "integer",
+					"format": "int64",
+					"minLength": 12,
+					"maxLength": 12,
+					"description": "Serial number (12 digits) of the Wistiki"
+				},
+				"msn_cipher": {
+					"type": "string",
+					"description": "MSN Cipher. Could be in format FF:FF:FF... or FFFFFF...",
+					"minLength": 32,
+					"maxLength": 48
+				},
+				"authentication_key": {
+					"type": "string",
+					"description": "Authentication key. Could be in format FF:FF:FF... or FFFFFF...",
+					"minLength": 47,
+					"maxLength": 47
+				},
+				"last_software_version": {
+					"type": "string",
+					"description": "Wistiki software version in format x.y.z"
+				},
+				"last_software_update": {
+					"type": "string",
+					"format": "date-time",
+					"description": "Last update date"
+				},
+				"wistiki_picture_base64": {
+					"type": "string"
+				},
+				"wistiki_alias": {
+					"type": "string",
+					"description": "Alias name given to the wistiki by the owner"
+				},
+				"is_lost": {
+					"type": "boolean",
+					"description": "True if wistiki is declared as lost"
+				},
+				"link_loss": {
+					"type": "boolean",
+					"description": "True if electronic leash option is activated, default is false"
+				},
+				"inverted_link_loss": {
+					"type": "boolean",
+					"description": "True if inverted electronic leash is activated. default is false"
+				},
+				"color": {
+					"type": "string",
+					"description": "Wistiki color",
+					"enum": [
+						"YELLOW",
+						"PURPLE",
+						"PINK",
+						"ORANGE",
+						"LACOSTE"
+					]
+				},
+				"icon": {
+					"type": "string",
+					"description": "Wistiki icon id"
+				}
+			},
+			"required": [
+				"serial_number",
+				"msn_cipher",
+				"wistiki_alias"
+			],
+			"example": {
+				"serial_number": 215483001250,
+				"authentication_key": "FF:FF:FF:FF:FF:FF:FF:FF:FF:FF:FF:FF:FF:FF:FF:FF",
+				"msn_cipher": "48:79:26:03:R5d:d6:b1:04:9a:5f:e2:a2:ae:a1:49:82",
+				"last_software_version": "1.0.0",
+				"wistiki_alias": "haha",
+				"wistiki_picture_base64": "data:image/png;base64,iVBORw0..."
+			}
+		},
+		"Position": {
+			"type": "object",
+			"description": "Object representing a Wistiki position",
+			"properties": {
+				"latitude": {
+					"type": "number",
+					"format": "double",
+					"description": "Latitude",
+					"minimum": -90,
+					"maximum": 90
+				},
+				"longitude": {
+					"type": "number",
+					"format": "double",
+					"description": "Longitude",
+					"minimum": -180,
+					"maximum": 180
+				},
+				"accuracy": {
+					"type": "number",
+					"format": "double",
+					"description": "Accuracy"
+				},
+				"date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "Date when the position was taken (in GMT)"
+				},
+				"formatted_address": {
+					"type": "string",
+					"description": "Formatted address string"
+				},
+				"street_number": {
+					"type": "string",
+					"description": "Position street number"
+				},
+				"street_name": {
+					"type": "string",
+					"description": "Position street name"
+				},
+				"city": {
+					"type": "string",
+					"description": "Position city name"
+				},
+				"country": {
+					"type": "string",
+					"description": "Position country name"
+				},
+				"country_code": {
+					"type": "string",
+					"description": "Country code with two capital letters"
+				},
+				"zip_code": {
+					"type": "string",
+					"description": "Zip code"
+				}
+			},
+			"required": [
+				"latitude",
+				"longitude",
+				"accuracy",
+				"date"
+			],
+			"example": {
+				"latitude": 48.880947,
+				"longitude": 2.347352,
+				"accuracy": 30,
+				"date": "2016-02-05T17:05:48.857Z",
+				"formatted_address": "24 Rue Petrelle, 75009 Paris, France",
+				"street_number": "24",
+				"street_name": "Rue Petrelle",
+				"city": "Paris",
+				"country": "France",
+				"country_code": "FR",
+				"zip_code": "75009"
+			}
+		},
+		"WistikiFound": {
+			"type": "object",
+			"description": "Wistiki found",
+			"properties": {
+				"msn_cipher": {
+					"type": "string",
+					"description": "MSN Cipher. Could be in format FF:FF:FF... or FFFFFF...",
+					"minLength": 32,
+					"maxLength": 48
+				},
+				"geolocation": {
+					"$ref": "#/definitions/Position",
+					"description": "Position where the Wistiki was found"
+				}
+			},
+			"required": [
+				"geolocation",
+				"msn_cipher"
+			]
+		},
+		"WistiketteFound": {
+			"type": "object",
+			"description": "Wistikette found",
+			"properties": {
+				"msn_cipher": {
+					"type": "string",
+					"description": "MSN Cipher. Could be in format FF:FF:FF... or FFFFFF...",
+					"minLength": 32,
+					"maxLength": 48
+				}
+			},
+			"required": [
+				"msn_cipher"
+			]
+		},
+		"WistiketteCall": {
+			"type": "object",
+			"description": "Wistikette Call",
+			"properties": {
+				"msn_cipher": {
+					"type": "string",
+					"description": "MSN Cipher. Could be in format FF:FF:FF... or FFFFFF...",
+					"minLength": 32,
+					"maxLength": 48
+				},
+				"phone_number": {
+					"type": "string",
+					"description": "Phone number of the person who found the wistikette"
+				}
+			},
+			"required": [
+				"msn_cipher",
+				"phone_number"
+			]
+		},
+		"RecoveryCipher": {
+			"type": "object",
+			"description": "Wistiki recovery Cipher",
+			"properties": {
+				"cipher": {
+					"type": "string"
+				}
+			}
+		},
+		"WistikiRecovery": {
+			"type": "object",
+			"description": "Wistiki recovery",
+			"properties": {
+				"msn_cipher": {
+					"type": "string",
+					"description": "MSN Cipher. Could be in format FF:FF:FF... or FFFFFF...",
+					"minLength": 32,
+					"maxLength": 48
+				},
+				"authorization_key": {
+					"type": "string",
+					"description": "Authorization key received via socket when recovery was requested"
+				},
+				"recovery_token": {
+					"type": "string",
+					"description": "Recovery Token to encrypt"
+				}
+			},
+			"required": [
+				"authorization_key",
+				"msn_cipher",
+				"recovery_token"
+			]
+		},
+		"WistikiPosition": {
+			"type": "object",
+			"description": "Wistiki identity to be sent when setting a new position",
+			"properties": {
+				"serial_number": {
+					"type": "integer",
+					"format": "int64",
+					"minLength": 12,
+					"maxLength": 12,
+					"description": "Serial number (12 digits) of the Wistiki"
+				},
+				"msn_cipher": {
+					"type": "string",
+					"description": "MSN Cipher. Could be in format FF:FF:FF... or FFFFFF...",
+					"minLength": 32,
+					"maxLength": 48
+				}
+			},
+			"required": [
+				"serial_number",
+				"msn_cipher"
+			],
+			"example": {
+				"serial_number": 215483001250,
+				"msn_cipher": "48:79:26:03:R5d:d6:b1:04:9a:5f:e2:a2:ae:a1:49:82"
+			}
+		},
+		"BasicDevice": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": "User friendly name of device",
+					"maxLength": 45
+				},
+				"manufacturer": {
+					"type": "string",
+					"description": "device manufacturer",
+					"maxLength": 45
+				},
+				"model": {
+					"type": "string",
+					"description": "OS Version",
+					"maxLength": 45
+				},
+				"os": {
+					"type": "string",
+					"description": "Operating System",
+					"maxLength": 45
+				},
+				"version": {
+					"type": "string",
+					"description": "OS version",
+					"maxLength": 45
+				},
+				"token": {
+					"type": "string",
+					"description": "GCM/APNS Token"
+				},
+				"app_version": {
+					"type": "integer",
+					"maxLength": 45
+				}
+			}
+		},
+		"Device": {
+			"type": "object",
+			"properties": {
+				"uid": {
+					"type": "string",
+					"maxLength": 255
+				},
+				"name": {
+					"type": "string",
+					"maxLength": 45
+				},
+				"manufacturer": {
+					"type": "string",
+					"maxLength": 45
+				},
+				"model": {
+					"type": "string",
+					"maxLength": 45
+				},
+				"os": {
+					"type": "string",
+					"description": "Operating System",
+					"maxLength": 45
+				},
+				"version": {
+					"type": "string",
+					"maxLength": 45
+				},
+				"type": {
+					"type": "string",
+					"maxLength": 45
+				},
+				"creation_date": {
+					"type": "string",
+					"format": "date"
+				},
+				"update_date": {
+					"type": "string",
+					"format": "date"
+				},
+				"app_version": {
+					"type": "integer",
+					"maxLength": 45
+				}
+			},
+			"example": {
+				"uid": "12345678",
+				"name": "iPad",
+				"manufacturer": "Apple",
+				"model": "iPad mini",
+				"os": "Mac OS",
+				"version": "10.11.1",
+				"type": "tablet",
+				"creation_date": "2015-12-21T01:37:30.000Z",
+				"update_date": "2015-12-21T01:57:45.000Z",
+				"app_version": 35
+			}
+		},
+		"ResponseWistiketteFound": {
+			"type": "object",
+			"properties": {
+				"first_name": {
+					"type": "string",
+					"maxLength": 255
+				},
+				"last_name": {
+					"type": "string",
+					"maxLength": 1
+				},
+				"wistikette_serial_number": {
+					"type": "integer",
+					"maxLength": 12
+				},
+				"wistikette_alias": {
+					"type": "string",
+					"maxLength": 45
+				},
+				"wistikette_picture": {
+					"type": "string",
+					"description": "Operating System",
+					"maxLength": 45
+				},
+				"wistikette_color": {
+					"type": "string",
+					"maxLength": 45,
+					"enum": [
+						"YELLOW",
+						"PURPLE",
+						"PINK",
+						"ORANGE",
+						"LACOSTE"
+					]
+				},
+				"wistikette_icon": {
+					"type": "string",
+					"maxLength": 45
+				}
+			},
+			"example": {
+				"first_name": "Adnene",
+				"last_name": "K",
+				"wistikette_serial_number": 316485001247,
+				"wistikette_alias": "Aha!",
+				"wistikette_picture": "s3://sqdqsdqsd",
+				"wistikette_color": "PINK",
+				"wistikette_icon": "KEY"
+			}
+		},
+		"ResponseDevice": {
+			"required": [
+				"uid",
+				"creation_date",
+				"update_date"
+			],
+			"allOf": [
+				{
+					"$ref": "#/definitions/Device",
+					"required": [
+						"uid",
+						"creation_date",
+						"update_date"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"last_position": {
+							"$ref": "#/definitions/ResponsePosition"
+						}
+					}
+				}
+			]
+		},
+		"ResponsePosition": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"description": "Position ID"
+				},
+				"position": {
+					"type": "object",
+					"description": "Position object containing Lat, Lon",
+					"properties": {
+						"type": {
+							"type": "string"
+						},
+						"coordinates": {
+							"type": "array",
+							"description": "Array containing latitude and longitude",
+							"items": {
+								"type": "number"
+							}
+						}
+					}
+				},
+				"accuracy": {
+					"type": "integer",
+					"description": "Position accuracy in meter"
+				},
+				"date": {
+					"type": "string",
+					"format": "date-time",
+					"description": "position date"
+				},
+				"formatted_address": {
+					"type": "string",
+					"description": "Formatted address string"
+				},
+				"street_number": {
+					"type": "string",
+					"description": "Position street number"
+				},
+				"street_name": {
+					"type": "string",
+					"description": "Position street name"
+				},
+				"city": {
+					"type": "string",
+					"description": "Position city name"
+				},
+				"country": {
+					"type": "string",
+					"description": "Position country name"
+				},
+				"country_code": {
+					"type": "string",
+					"description": "Country code with two capital letters"
+				},
+				"zip_code": {
+					"type": "string",
+					"description": "Zip code"
+				}
+			},
+			"example": {
+				"id": 167,
+				"position": {
+					"type": "Point",
+					"coordinates": [
+						48.880947,
+						2.347352
+					]
+				},
+				"accuracy": 30,
+				"date": "2016-02-05T17:05:48.857Z",
+				"formatted_address": "24 Rue Petrelle, 75009 Paris, France",
+				"street_number": "24",
+				"street_name": "Rue Petrelle",
+				"city": "Paris",
+				"country": "France",
+				"country_code": "FR",
+				"zip_code": "75009"
+			}
+		},
+		"Error": {
+			"type": "object",
+			"properties": {
+				"code": {
+					"type": "string",
+					"description": "HTTP Error code"
+				},
+				"message": {
+					"type": "string",
+					"description": "Error description code"
+				},
+				"name": {
+					"type": "string",
+					"description": "HTTP error description"
+				},
+				"errors": {
+					"type": "array",
+					"items": {
+						"type": "object"
+					}
+				}
+			},
+			"required": [
+				"code",
+				"message",
+				"name"
+			]
+		},
+		"BadRequestError": {
+			"allOf": [
+				{
+					"$ref": "#/definitions/Error"
+				},
+				{
+					"example": {
+						"code": 400,
+						"name": "BadRequest",
+						"message": "SCHEMA_VALIDATION_FAILED",
+						"errors": [
+							{
+								"code": "MIN_LENGTH",
+								"message": "String is too short (5 chars), minimum 6",
+								"field": [
+									"password"
+								]
+							}
+						]
+					}
+				}
+			]
+		},
+		"ConflictError": {
+			"allOf": [
+				{
+					"$ref": "#/definitions/Error"
+				},
+				{
+					"example": {
+						"code": 409,
+						"name": "Conflict",
+						"message": "User adnene.khalfa@wistiki.com already exist",
+						"errors": {}
+					}
+				}
+			]
+		},
+		"UnauthorizedError": {
+			"allOf": [
+				{
+					"$ref": "#/definitions/Error"
+				},
+				{
+					"example": {
+						"code": 401,
+						"name": "NotAuthenticated",
+						"message": "invalid token",
+						"errors": {}
+					}
+				}
+			]
+		},
+		"NotAuthenticated": {
+			"allOf": [
+				{
+					"$ref": "#/definitions/Error"
+				},
+				{
+					"example": {
+						"code": 403,
+						"name": "NotAuthenticated",
+						"message": "DEVICE_NOT_ASSOCIATED",
+						"errors": [
+						]
+					}
+				}
+			]
+		},
+		"ForbiddenError": {
+			"allOf": [
+				{
+					"$ref": "#/definitions/Error"
+				},
+				{
+					"example": {
+						"code": 403,
+						"name": "Forbidden",
+						"message": "MODEL_ACL_ERROR",
+						"errors": [
+							{
+								"message": "You are not allowed to access this resource",
+								"role": "user",
+								"resource": "user",
+								"privilege": "get"
+							}
+						]
+					}
+				}
+			]
+		},
+		"NotFoundError": {
+			"allOf": [
+				{
+					"$ref": "#/definitions/Error"
+				},
+				{
+					"example": {
+						"code": 404,
+						"name": "NotFound",
+						"message": "RESOURCE_NOT_FOUND",
+						"errors": []
+					}
+				}
+			]
+		}
+	},
+	"parameters": {
+		"app_id": {
+			"name": "app_id",
+			"in": "path",
+			"description": "Application id",
+			"required": true,
+			"type": "string"
+		},
+		"email": {
+			"name": "email",
+			"in": "path",
+			"description": "The user email used as the id",
+			"required": true,
+			"type": "string",
+			"format": "email"
+		},
+		"serial_number": {
+			"name": "serial_number",
+			"in": "path",
+			"description": "Serial number (12 digits) of the Wistiki",
+			"required": true,
+			"type": "integer",
+			"format": "int64",
+			"minLength": 12,
+			"maxLength": 12
+		},
+		"jwt": {
+			"name": "Authorization",
+			"in": "header",
+			"description": "JWT Authentication Token",
+			"required": true,
+			"type": "string"
+		},
+		"environment": {
+			"name": "X-Wistiki-Environment",
+			"in": "header",
+			"description": "Application environment",
+			"required": false,
+			"type": "string",
+			"enum": [
+				"production",
+				"development"
+			]
+		},
+		"refresh_token": {
+			"name": "x-wistiki-refresh-token",
+			"in": "header",
+			"description": "Refresh token for refresh authentication",
+			"required": true,
+			"type": "string"
+		},
+		"device_uid": {
+			"name": "x-wistiki-device-uid",
+			"in": "header",
+			"description": "Device uid for refresh authentication",
+			"required": true,
+			"type": "string"
+		}
+	}
+}
